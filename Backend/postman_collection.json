@@ -1,0 +1,533 @@
+{
+  "info": {
+    "_postman_id": "9b0c2f0c-9a43-4e30-9c3b-9a3b1c0a4f8a",
+    "name": "Dental Management System API",
+    "description": "Secure backend API collection (JWT access + refresh, roles, encrypted medical records, uploads, audit logs).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000/api" },
+    { "key": "hospitalId", "value": "" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "patientId", "value": "" },
+    { "key": "medicalRecordId", "value": "" },
+    { "key": "appointmentId", "value": "" },
+    { "key": "uploadId", "value": "" },
+    { "key": "dentistId", "value": "" },
+    { "key": "userId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Setup Hospital (first admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "if (json && json.refreshToken) pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "if (json && json.user && json.user.id) pm.collectionVariables.set('userId', json.user.id);",
+                  "if (json && json.user && json.user.hospital_id) pm.collectionVariables.set('hospitalId', json.user.hospital_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/setup-hospital", "host": ["{{baseUrl}}"], "path": ["auth", "setup-hospital"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hospital_name\": \"Good Health Dental Hospital\",\n  \"license_number\": \"LIC-2026-001\",\n  \"address\": \"100 Dental Street, City\",\n  \"admin_name\": \"Alice Admin\",\n  \"admin_email\": \"admin@example.com\",\n  \"admin_password\": \"StrongPass123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register User (admin creates users)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Admin\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"role\": \"admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "if (json && json.refreshToken) pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "if (json && json.user && json.user.id) pm.collectionVariables.set('userId', json.user.id);",
+                  "if (json && json.user && json.user.hospital_id) pm.collectionVariables.set('hospitalId', json.user.hospital_id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"hospital_id\": \"{{hospitalId}}\"\n}" }
+          }
+        },
+        {
+          "name": "Refresh Token (rotates refresh token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "if (json && json.refreshToken) pm.collectionVariables.set('refreshToken', json.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Logout (revoke one refresh token)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Logout All (revoke all refresh tokens for current user)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/auth/logout-all", "host": ["{{baseUrl}}"], "path": ["auth", "logout-all"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "List Users (admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/users?page=1&limit=20&search=&role=",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "" },
+                { "key": "role", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Create Patient (with medical_history)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.patient && json.patient.id) pm.collectionVariables.set('patientId', json.patient.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/patients", "host": ["{{baseUrl}}"], "path": ["patients"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+1-555-0100\",\n  \"address\": \"123 Main St\",\n  \"medical_history\": \"Asthma, penicillin allergy\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Patients (pagination + search)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/patients?page=1&limit=20&search=",
+              "host": ["{{baseUrl}}"],
+              "path": ["patients"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "search", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Patient",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/patients/{{patientId}}", "host": ["{{baseUrl}}"], "path": ["patients", "{{patientId}}"] }
+          }
+        },
+        {
+          "name": "Update Patient (phone / medical_history)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/patients/{{patientId}}", "host": ["{{baseUrl}}"], "path": ["patients", "{{patientId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1-555-0101\",\n  \"medical_history\": \"Asthma, penicillin allergy (updated)\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Patient (soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/patients/{{patientId}}", "host": ["{{baseUrl}}"], "path": ["patients", "{{patientId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Medical Records (encrypted at rest)",
+      "item": [
+        {
+          "name": "Create Medical Record (with prescription)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.medicalRecord && json.medicalRecord.id) pm.collectionVariables.set('medicalRecordId', json.medicalRecord.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/medical-records", "host": ["{{baseUrl}}"], "path": ["medical-records"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"{{patientId}}\",\n  \"diagnosis\": \"Caries\",\n  \"treatment\": \"Filling\",\n  \"notes\": \"Patient reports mild sensitivity\",\n  \"prescription\": \"Ibuprofen 400mg PO q8h PRN pain\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Medical Record",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/medical-records/{{medicalRecordId}}", "host": ["{{baseUrl}}"], "path": ["medical-records", "{{medicalRecordId}}"] }
+          }
+        },
+        {
+          "name": "Update Medical Record (notes / prescription)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/medical-records/{{medicalRecordId}}", "host": ["{{baseUrl}}"], "path": ["medical-records", "{{medicalRecordId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Updated notes\",\n  \"prescription\": \"Ibuprofen 400mg PO q8h PRN pain (updated)\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Medical Records By Patient",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/patients/{{patientId}}/medical-records?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["patients", "{{patientId}}", "medical-records"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Medical Record (soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/medical-records/{{medicalRecordId}}", "host": ["{{baseUrl}}"], "path": ["medical-records", "{{medicalRecordId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Create Appointment (with appointment_status & billing_summary)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json && json.appointment && json.appointment.id) pm.collectionVariables.set('appointmentId', json.appointment.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/appointments", "host": ["{{baseUrl}}"], "path": ["appointments"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"{{patientId}}\",\n  \"dentist_id\": \"{{dentistId}}\",\n  \"date\": \"2026-03-20\",\n  \"time\": \"10:30\",\n  \"status\": \"scheduled\",\n  \"appointment_status\": \"Scheduled\",\n  \"billing_summary\": {\n    \"total\": 120,\n    \"currency\": \"USD\",\n    \"paid\": false,\n    \"notes\": \"First visit\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "List Appointments (filters)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/appointments?page=1&limit=20&patient_id=&dentist_id=&status=&date_from=&date_to=",
+              "host": ["{{baseUrl}}"],
+              "path": ["appointments"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "patient_id", "value": "" },
+                { "key": "dentist_id", "value": "" },
+                { "key": "status", "value": "" },
+                { "key": "date_from", "value": "" },
+                { "key": "date_to", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Appointment",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/appointments/{{appointmentId}}", "host": ["{{baseUrl}}"], "path": ["appointments", "{{appointmentId}}"] }
+          }
+        },
+        {
+          "name": "Update Appointment (status / billing_summary)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/appointments/{{appointmentId}}", "host": ["{{baseUrl}}"], "path": ["appointments", "{{appointmentId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"appointment_status\": \"Completed\",\n  \"billing_summary\": {\n    \"total\": 120,\n    \"currency\": \"USD\",\n    \"paid\": true,\n    \"notes\": \"Paid in full\"\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Appointment (soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/appointments/{{appointmentId}}", "host": ["{{baseUrl}}"], "path": ["appointments", "{{appointmentId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Uploads",
+      "item": [
+        {
+          "name": "Upload File (multipart form-data, field name: file)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/uploads", "host": ["{{baseUrl}}"], "path": ["uploads"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "patient_id", "value": "{{patientId}}", "type": "text" },
+                { "key": "kind", "value": "xray", "type": "text" },
+                { "key": "file", "type": "file", "src": [] }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Uploads",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/uploads?page=1&limit=20&patient_id=",
+              "host": ["{{baseUrl}}"],
+              "path": ["uploads"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "patient_id", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Upload (soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/uploads/{{uploadId}}", "host": ["{{baseUrl}}"], "path": ["uploads", "{{uploadId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit Logs (admin)",
+      "item": [
+        {
+          "name": "List Audit Logs (filters)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/audit-logs?page=1&limit=20&user_id=&action=&resource=",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit-logs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "user_id", "value": "" },
+                { "key": "action", "value": "" },
+                { "key": "resource", "value": "" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dentist",
+      "item": [
+        {
+          "name": "My Daily Schedule",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/dentists/me/daily-schedule?date=2026-03-20&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["dentists", "me", "daily-schedule"],
+              "query": [
+                { "key": "date", "value": "2026-03-20" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "System Health",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/system-health", "host": ["{{baseUrl}}"], "path": ["admin", "system-health"] }
+          }
+        },
+        {
+          "name": "Inventory Alerts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/admin/inventory-alerts", "host": ["{{baseUrl}}"], "path": ["admin", "inventory-alerts"] }
+          }
+        }
+      ]
+    }
+  ]
+}
+
