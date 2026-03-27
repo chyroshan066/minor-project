@@ -143,7 +143,7 @@ async function uploadProfileImage(req, res, next) {
 
     const { mimetype, buffer } = req.file;
 
-    // Use Cloudinary if enabled
+    
     if (env.cloudinaryEnabled) {
       // Custom transformation for profile pictures: 
       // c_fill (fill area), g_face (center on face), w_400, h_400 (400x400 px)

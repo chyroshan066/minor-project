@@ -41,7 +41,7 @@ export async function uploadOne(payload: {
  */
 export async function uploadProfileImage(file: File): Promise<{ url: string; public_id?: string }> {
   const form = new FormData();
-  form.append("file", file); // Matches .single('file') in uploadRoutes
+  form.append("file", file); 
 
   const res = await apiClient.post("/uploads/profile", form, {
     headers: { "Content-Type": "multipart/form-data" },

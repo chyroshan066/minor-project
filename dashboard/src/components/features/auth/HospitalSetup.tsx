@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/form/Input";
 // Logic & Store Imports
 import { setupHospital } from "@/lib/api/auth";
 import { getApiErrorMessage } from "@/lib/api/errors";
-import { useAuthStore } from "@/store/authStore";
 
 const setupSchema = z.object({
   hospital_name: z.string().min(2, "Hospital name is too short"),
@@ -30,13 +29,12 @@ const setupSchema = z.object({
 type SetupForm = z.infer<typeof setupSchema>;
 
 export default function SetupHospitalPage() {
-  const router = useRouter();
-  const setSession = useAuthStore((s) => s.setSession);
   const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
+    reset, // Added to clear form after success
     formState: { errors },
   } = useForm<SetupForm>({
     resolver: zodResolver(setupSchema),
@@ -48,7 +46,6 @@ export default function SetupHospitalPage() {
       // 1. Create Hospital & Admin in Database
       const data = await setupHospital(values);
 
-      // FIX: Guard clause to handle TypeScript 'possibly null' error
       if (!data || !data.hospital) {
         throw new Error("Registration failed: Hospital data not received.");
       }
@@ -62,40 +59,31 @@ export default function SetupHospitalPage() {
       };
 
       try {
-        // Only attempt to send if environment variables are present
         const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_kapkbvp";
-        
         const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_t8am5qm";
-
         const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "HZ6bVjwq92m_MSQfT";
+        
         emailjs.init(publicKey);
 
-        const response = await emailjs.send(
+        await emailjs.send(
           serviceId,
           templateId,
           templateParams,
           publicKey
         );
-        
-        console.log("EmailJS Success:", response.status, response.text);
-
-        if (serviceId && templateId && publicKey) {
-          await emailjs.send(serviceId, templateId, templateParams, publicKey);
-        }
       } catch (emailErr) {
-        // Log the error but don't stop the user redirect
         console.error("EmailJS Error:", emailErr);
       }
 
-      // 3. Set Session and Redirect
-      setSession({
-        accessToken: data.accessToken,
-        refreshToken: data.refreshToken,
-        user: data.user,
+      // 3. Success Feedback
+      // We removed setSession and router.replace to keep the user on this page
+      toast.success("Hospital setup successful! Check your email for your Hospital ID.", {
+        duration: 10000, // Keep toast visible longer since we aren't redirecting
       });
 
-      toast.success("Setup successful! Check your email for your Hospital ID.");
-      router.replace("/dashboard");
+      // Optional: Reset form so they can see the empty state or register another if needed
+      reset();
+
     } catch (err) {
       toast.error(getApiErrorMessage(err));
     } finally {
@@ -109,7 +97,6 @@ export default function SetupHospitalPage() {
         <div className="relative flex items-center p-0 overflow-hidden bg-center bg-cover min-h-screen">
           <div className="container z-10">
             <div className="flex flex-wrap mt-0 -mx-3">
-              {/* Form Side */}
               <div className="flex flex-col w-full max-w-full px-3 mx-auto md:flex-0 shrink-0 md:w-7/12 lg:w-5/12 xl:w-4/12">
                 <div className="relative flex flex-col min-w-0 mt-24 break-words bg-transparent border-0 shadow-none rounded-2xl bg-clip-border">
                   <div className="p-6 pb-0 mb-0 bg-transparent border-b-0 rounded-t-2xl">
@@ -176,7 +163,10 @@ export default function SetupHospitalPage() {
                     </form>
                   </div>
 
-                  <div className="p-6 px-1 pt-0 text-center bg-transparent">
+                  <div className="p-6 px-1 pt-0 text-center bg-transparent border-t">
+                    <p className="mx-auto mt-4 mb-2 text-sm font-bold text-slate-700">
+                        Hospital Registered Successfully. Check your email for the Hospital ID .
+                    </p>
                     <p className="mx-auto mb-6 text-sm">
                       Already have an ID?&nbsp;
                       <Link href="/login" className="font-semibold text-transparent bg-gradient-soft-blue600-cyan400 bg-clip-text">

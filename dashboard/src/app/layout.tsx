@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "@/styles/globals.css";
 import { Children } from "@/types";
+import DentaBot from "@/components/DentaBot";
 
 export const metadata: Metadata = {
   title: "<website_title>",
@@ -102,6 +103,7 @@ export default function RootLayout({ children }: Readonly<Children>) {
         />
       </head>
       {children}
+      <DentaBot/>
     </html>
   );
 }

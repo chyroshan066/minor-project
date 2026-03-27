@@ -14,7 +14,7 @@ const { getPagination } = require("../utils/pagination");
 async function create(req, res, next) {
   try {
     const {
-      patient_email, // Extracted from your updated frontend/Postman
+      patient_email, 
       dentist_id,
       date,
       time,

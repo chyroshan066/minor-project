@@ -1,5 +1,7 @@
 const express = require('express');
+
 const { authRoutes } = require('./authRoutes');
+const { chatRoutes } = require('./chatRoutes');
 const { userRoutes } = require('./userRoutes');
 const { patientRoutes } = require('./patientRoutes');
 const { appointmentRoutes } = require('./appointmentRoutes');
@@ -8,6 +10,7 @@ const { auditRoutes } = require('./auditRoutes');
 const { uploadRoutes } = require('./uploadRoutes');
 const { adminRoutes } = require('./adminRoutes');
 const { dentistRoutes } = require('./dentistRoutes');
+// const {chatRoutes} = require('./chatRoutes');
 
 
 const router = express.Router();
@@ -23,7 +26,7 @@ router.use('/audit-logs', auditRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/admin', adminRoutes);
 router.use('/dentists', dentistRoutes);
-
+router.use('/chat-ai', chatRoutes);
 
 module.exports = { apiRoutes: router };
 
