@@ -84,7 +84,7 @@ app.use("/api/dentist", dentistRoutes);
 app.use("/api/medical", medicalRecordRoutes);
 app.use("/api/patient", patientRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use("/api/user", userRoutes);
+app.use("/api/users", userRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Route not found" });
