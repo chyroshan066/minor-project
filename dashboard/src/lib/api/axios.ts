@@ -3,7 +3,7 @@ import { useAuthStore } from "@/store/authStore";
 import { redirectToLogin } from "@/lib/navigation";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api-minor-project.vercel.app/api";
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;

@@ -29,7 +29,7 @@ import {
 import { uploadOne, listUploads, type Upload } from "@/lib/api/uploads";
 import { getApiErrorMessage } from "@/lib/api/errors";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api-minor-project.vercel.app/api";
 const truncateId = (id: string) => id?.length > 8 ? `${id.substring(0, 8)}...` : id;
 
 function toPublicUrl(url: string | null | undefined) {

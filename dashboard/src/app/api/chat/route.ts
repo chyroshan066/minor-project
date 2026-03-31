@@ -16,7 +16,7 @@ export async function POST(req: Request) {
 
     // 2. Forward request to Node.js (Port 4000)
     const response = await axios.post(
-      'http://localhost:4000/api/chat-ai', 
+      'https://api-minor-project.vercel.app/api/chat-ai', 
       {
         message: message,
         // Match the 'conversation_history' key your Python service expects
