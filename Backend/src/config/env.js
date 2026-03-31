@@ -31,7 +31,7 @@ function resolveDatabaseUrl() {
 const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 4000),
-  DATABASE_URL: required('DATABASE_URL'),
+  DATABASE_URL: resolveDatabaseUrl(),
   PGSSLMODE: process.env.PGSSLMODE || 'disable',
 
   JWT_ACCESS_SECRET: required('JWT_ACCESS_SECRET'),
