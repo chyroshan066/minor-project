@@ -2,7 +2,7 @@
   "name": "dental-management-backend",
   "version": "1.0.0",
   "description": "Secure backend for a Dental Management System",
-  "main": "src/server.js",
+  "main": "api/index.js",
   "type": "commonjs",
   "scripts": {
     "dev": "node --watch src/server.js",

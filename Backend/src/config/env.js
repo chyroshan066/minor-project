@@ -8,6 +8,26 @@ function required(name) {
   return v;
 }
 
+function resolveDatabaseUrl() {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+ 
+  const host = process.env.PGHOST;
+  const db = process.env.PGDATABASE;
+  const user = process.env.PGUSER;
+  const pass = process.env.PGPASSWORD;
+  const port = process.env.PGPORT || "5432";
+ 
+  if (host && db && user && pass) {
+    // URL-encode the password in case it contains special characters
+    const encodedPass = encodeURIComponent(pass);
+    return `postgres://${user}:${encodedPass}@${host}:${port}/${db}`;
+  }
+ 
+  throw new Error(
+    "Database not configured: set DATABASE_URL or PGHOST/PGDATABASE/PGUSER/PGPASSWORD"
+  );
+}
+
 const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 4000),
