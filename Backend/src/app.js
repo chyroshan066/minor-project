@@ -76,14 +76,14 @@ app.get("/health", (req, res) => {
 
 // API routes
 app.use("/api/admin", adminRoutes);
-app.use("/api/appointment", appointmentRoutes);
-app.use("/api/audit", auditRoutes);
+app.use("/api/appointments", appointmentRoutes);
+app.use("/api/audit-logs", auditRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
-app.use("/api/dentist", dentistRoutes);
-app.use("/api/medical", medicalRecordRoutes);
-app.use("/api/patient", patientRoutes);
-app.use("/api/upload", uploadRoutes);
+app.use("/api/dentists", dentistRoutes);
+app.use("/api/medical-records", medicalRecordRoutes);
+app.use("/api/patients", patientRoutes);
+app.use("/api/uploads", uploadRoutes);
 app.use("/api/users", userRoutes);
 
 app.use((_req, res) => {
