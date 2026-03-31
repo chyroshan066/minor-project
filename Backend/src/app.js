@@ -4,8 +4,23 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 
+// require('dotenv').config();
+
 const { env } = require('./config/env');
-const { apiRoutes } = require('./routes');
+
+const adminRoutes = require('./routes/adminRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
+const auditRoutes = require('./routes/auditRoutes');
+const authRoutes = require('./routes/authRoutes');
+const chatRoutes = require('./routes/chatRoutes');
+const dentistRoutes = require('./routes/dentistRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const medicalRecordRoutes = require("./routes/medicalRecordRoutes");
+const patientRoutes = require("./routes/patientRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
+const userRoutes = require("./routes/userRoutes");
+// const { handleSubscription, getSubscribers } = require('./controllers/newsletterController');
+
 const { errorHandler } = require('./middleware/errorHandler');
 const { notFound, forbidden } = require('./utils/errors');
 
@@ -13,11 +28,24 @@ const app = express();
 
 app.disable('x-powered-by');
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' }
-  })
-);
+const allowedOrigins = [
+  "http://localhost:3000/dashboard",
+  "https://chatbot-minor-project.vercel.app/",
+  "https://dental-minor-project.vercel.app/"
+];
+
+// CORS configuration
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE', 'PATCH' ,'OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+};
+
+// Apply CORS before all routes/middleware
+app.use(cors(corsOptions));
+// Handle preflight OPTIONS requests
+app.options('*', cors(corsOptions));
 
 app.use(
   rateLimit({
@@ -28,40 +56,32 @@ app.use(
   })
 );
 
-app.use(
-  cors({
-    origin(origin, cb) {
-      // Allow requests with no origin (mobile apps, server-to-server, curl)
-      if (!origin) return cb(null, true);
-
-      const allowedOrigins = [...env.corsOrigins, 'http://localhost:3000', 'http://localhost:3001'];
-
-      if (allowedOrigins.length === 0) return cb(forbidden('CORS not configured'));
-
-      if (allowedOrigins.includes(origin)) {
-        return cb(null, true);
-      }
-
-      return cb(forbidden('CORS blocked'));
-    },
-    credentials: false
-  })
-);
-
 app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-// Serve local uploads if Cloudinary not enabled
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), { fallthrough: true }));
+// Static files for uploaded images
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Health check endpoint — useful for Vercel cold-start debugging
+// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-app.use('/api', apiRoutes);
+// API routes
+app.use('/api/admin', adminRoutes);
+app.use("/api/appointment", appointmentRoutes);
+app.use('/api/audit', auditRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
+app.use('/api/dentist', dentistRoutes);
+app.use('/api/review', reviewRoutes);
+app.use('/api/medical', medicalRecordRoutes);
+app.post('/api/patient', patientRoutes);
+app.get('/api/upload', uploadRoutes); 
+app.get('/api/user', userRoutes); 
 
-app.use((req, res, next) => next(notFound('Route not found')));
+// 404 and error handlers
+app.use(notFoundHandler);
 app.use(errorHandler);
 
-// ADDED: Export the Express app — server2.js will wrap it for serverless
 module.exports = app;
