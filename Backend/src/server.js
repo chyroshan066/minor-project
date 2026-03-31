@@ -1,7 +1,7 @@
 const serverless = require('serverless-http');
 
 // ADDED: Import the Express app from app2.js (pure config, no listen())
-const app = require('./app2');
+const app = require('./app');
 
 // ADDED: Import DB pool — update this path to match your project structure
 const { pool } = require('./config/db');
