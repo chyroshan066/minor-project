@@ -1,12 +1,3 @@
-// const app = require("../src/app");
-
-// module.exports = app;
-
-
-
-
-
-
 const app = require("../src/app");
 const { pool } = require("../src/config/db");
  

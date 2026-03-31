@@ -4,8 +4,6 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const path = require("path");
 
-// require('dotenv').config();
-
 const { env } = require("./config/env");
 
 const { adminRoutes } = require("./routes/adminRoutes");
@@ -18,10 +16,8 @@ const { medicalRecordRoutes } = require("./routes/medicalRecordRoutes");
 const { patientRoutes } = require("./routes/patientRoutes");
 const { uploadRoutes } = require("./routes/uploadRoutes");
 const { userRoutes } = require("./routes/userRoutes");
-// const { handleSubscription, getSubscribers } = require('./controllers/newsletterController');
 
 const { errorHandler } = require("./middleware/errorHandler");
-// const { notFound, forbidden } = require('./utils/errors');
 
 const app = express();
 
@@ -34,17 +30,9 @@ app.use(
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://chatbot-minor-project.vercel.app/",
-  "https://dental-minor-project.vercel.app/",
+  "https://chatbot-minor-project.vercel.app",
+  "https://dental-minor-project.vercel.app",
 ];
-
-// CORS configuration
-// const corsOptions = {
-//   origin: allowedOrigins,
-//   credentials: true,
-//   methods: ['GET','POST','PUT','DELETE', 'PATCH' ,'OPTIONS'],
-//   allowedHeaders: ['Content-Type','Authorization']
-// };
 
 const corsOptions = {
   origin(origin, cb) {
@@ -97,9 +85,6 @@ app.use("/api/medical", medicalRecordRoutes);
 app.use("/api/patient", patientRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/user", userRoutes);
-
-// 404 and error handlers
-// app.use(notFound);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Route not found" });
