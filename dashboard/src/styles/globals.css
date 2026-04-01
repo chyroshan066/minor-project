@@ -1,47 +1,63 @@
 @import "tailwindcss";
 
 @theme {
-  /* BRANDING */
+  /* BRANDING
+     Deep teal-blue as the primary — clinical, trustworthy, dental-specific.
+     Replaces the fuchsia/purple which reads more "tech startup" than "healthcare". */
   --color-primary: rgb(
-    203 12 159
-  ); /* Main buttons, active links, key borders */
-  --color-primary-ring: var(
-    --color-fuchsia-400
-  ); /* Focus rings, hover states (lighter) */
-  --color-primary-hover: var(--color-fuchsia-600);
+    13 110 143
+  ); /* Main buttons, active links, key borders — teal blue */
+  --color-primary-ring: rgb(
+    103 194 221
+  ); /* Focus rings, hover states — lighter teal */
+  --color-primary-hover: rgb(
+    10 85 112
+  ); /* Deeper teal on hover */
   --color-secondary: rgb(
-    58 65 111
-  ); /* Dark backgrounds, headings, contrast elements */
+    15 40 75
+  ); /* Dark navy — headings, contrast elements, sidebars */
 
   /* TYPOGRAPHY */
-  --color-main: rgb(52 71 103); /* Standard body text */
-  --color-muted: rgb(103 116 142); /* Subtitles, captions, metadata */
-  --color-disabled: rgb(131 146 171); /* Placeholders, disabled text */
+  --color-main: rgb(30 52 80);      /* Standard body text — deep navy-slate */
+  --color-muted: rgb(82 104 128);   /* Subtitles, captions, metadata */
+  --color-disabled: rgb(148 163 184); /* Placeholders, disabled text */
 
   /* SURFACE & BORDERS */
-  --color-surface: rgb(255 255 255); /* Cards, modals, main background */
-  --color-surface-ground: rgb(248 249 250); /* Page background behind cards */
-  --color-border: var(--color-gray-200); /* Standard dividing lines */
-  --color-border-hover: var(--color-slate-300);
+  --color-surface: rgb(255 255 255);       /* Cards, modals, main background */
+  --color-surface-ground: rgb(241 245 249); /* Page background — cool slate-50 */
+  --color-border: rgb(
+    226 232 240
+  ); /* Standard dividing lines — slate-200 */
+  --color-border-hover: rgb(
+    148 163 184
+  ); /* Hover border — slate-400 */
 
   /* FEEDBACK */
-  --color-success: rgb(130 214 22); /* Completion status, "up" arrows */
-  --color-danger: rgb(234 6 6); /* Delete buttons, errors */
-  /* --color-warning: var(--color-yellow-400); */
-  /* --color-info: var(--color-blue-600); */
+  --color-success: rgb(
+    34 197 94
+  ); /* Completion status, "up" arrows — clean green */
+  --color-danger: rgb(
+    220 38 38
+  ); /* Delete buttons, errors — standard red */
+  /* --color-warning: rgb(234 179 8);  */  /* amber-500 if needed */
+  /* --color-info: rgb(59 130 246);    */  /* blue-500 if needed */
 
-  /* GRADIENTS */
+  /* GRADIENTS
+     Dark gradient: deep navy — used in cards like ActiveUsers, CreditCard.
+     Brand gradient: teal-to-cyan — replaces the fuchsia/magenta, feels
+     clinical and modern without being cold. */
   --background-image-gradient-dark: linear-gradient(
     to top left,
-    #141727,
-    #3a416f
-  ); /* CreditCard, ActiveUsers */
+    #0a1628,
+    #0d4f6e
+  ); /* Deep navy → teal navy — sidebars, dark stat cards */
+
   --background-image-gradient-brand: linear-gradient(
     to top left,
-    #7e28ca,
-    #ff0080
-  ); /* StatCards, Rockets */
-} 
+    #0d6e8f,
+    #06b6d4
+  ); /* Teal → cyan — StatCards, Rockets, highlights */
+}
 
 @layer base {
   *,
