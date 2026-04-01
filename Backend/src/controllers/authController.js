@@ -96,6 +96,7 @@ async function login(req, res, next) {
         role: user.role,
         avatar_url: user.avatar_url,
         hospital_id: user.hospital_id,
+        hospital_name: user.hospital_name,
         created_at: user.created_at
       }
     });
@@ -163,6 +164,7 @@ async function refresh(req, res, next) {
         role: user.role,
         avatar_url: user.avatar_url,
         hospital_id: user.hospital_id,
+        hospital_name: user.hospital_name,
         created_at: user.created_at
       }
     });
@@ -267,6 +269,7 @@ async function setupHospital(req, res, next) {
         role: createdAdmin.role,
         avatar_url: createdAdmin.avatar_url,
         hospital_id: createdHospital.id,
+        hospital_name: createdHospital.name,
         created_at: createdAdmin.created_at
       }
     });

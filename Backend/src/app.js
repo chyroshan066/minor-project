@@ -10,7 +10,6 @@ const { adminRoutes } = require("./routes/adminRoutes");
 const { appointmentRoutes } = require("./routes/appointmentRoutes");
 const { auditRoutes } = require("./routes/auditRoutes");
 const { authRoutes } = require("./routes/authRoutes");
-const { chatRoutes } = require("./routes/chatRoutes");
 const { dentistRoutes } = require("./routes/dentistRoutes");
 const { medicalRecordRoutes } = require("./routes/medicalRecordRoutes");
 const { patientRoutes } = require("./routes/patientRoutes");
@@ -21,6 +20,8 @@ const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.disable("x-powered-by");
 app.use(
   helmet({
@@ -30,7 +31,7 @@ app.use(
 
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://chatbot-minor-project.vercel.app",
+  "https://api-minor-project.vercel.app/api/chat",
   "https://dental-minor-project.vercel.app",
 ];
 
@@ -79,7 +80,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/audit-logs", auditRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/chat", chatRoutes);
 app.use("/api/dentists", dentistRoutes);
 app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/patients", patientRoutes);

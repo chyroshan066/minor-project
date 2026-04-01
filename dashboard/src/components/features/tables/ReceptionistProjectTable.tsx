@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import * as Dialog from "@radix-ui/react-dialog";
+import emailjs from "@emailjs/browser"; // Added EmailJS import
 import {
   faCalendarPlus,
   faSyncAlt,
@@ -36,6 +37,7 @@ import {
 } from "@/lib/api/appointments";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { listUsers } from "@/lib/api/users";
+import { useAuthStore } from "@/store/authStore"; // Import your auth store
 
 function todayISO() {
   const d = new Date();
@@ -47,6 +49,10 @@ const truncateId = (id: string) =>
   id?.length > 8 ? `${id.substring(0, 8)}...` : id;
 
 export const ReceptionistProjectTable = () => {
+  const { user: adminUser, hospitalId, hospitalName } = useAuthStore(); // Get current admin/receptionist info
+  console.log("Authenticated User:", adminUser);
+  console.log("Hospital Name:", hospitalName);
+  
   const [date, setDate] = useState(todayISO);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -129,6 +135,7 @@ export const ReceptionistProjectTable = () => {
           }
         : undefined;
 
+      // 1. Save to Database
       await createAppointment({
         patient_email: patientEmail.trim(),
         dentist_id: dentistId.trim(),
@@ -138,6 +145,32 @@ export const ReceptionistProjectTable = () => {
         status: "scheduled",
         billing_summary: billing,
       } as any);
+
+      // 2. Send Patient Confirmation Email
+      try {
+        const selectedDentist = dentists.find(d => d.id === dentistId);
+        const serviceId = "service_o2jkmgp";
+        const templateId = "template_o97b7ex"; // Create this in EmailJS
+        const publicKey = "0rzdySNp70BDctY84";
+
+        emailjs.init(publicKey);
+
+        const templateParams = {
+          to_email: patientEmail.trim(),
+          patient_email: patientEmail.trim(),
+          appointment_date: date,
+          appointment_time: time,
+          dentist_name: selectedDentist ? `Dr. ${selectedDentist.name}` : "Assigned Dentist",
+          hospital_name: hospitalName || "Our Dental Clinic",
+          hospital_id: hospitalId,
+          from_email: adminUser?.email || "reception@arthonyx.com",
+        };
+
+        await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      } catch (emailErr) {
+        console.error("Email Confirmation Error:", emailErr);
+        toast.warning("Appointment saved, but patient notification email failed.");
+      }
 
       toast.success("Appointment Created Successfully");
       setPatientEmail("");
@@ -222,7 +255,6 @@ export const ReceptionistProjectTable = () => {
         </button>
       </div>
 
-      {/* FULL WIDTH TABLE */}
       <DataTableWrapper title={`Timeline for ${date}`}>
         <div className="overflow-x-auto">
           <Table>
@@ -298,30 +330,19 @@ export const ReceptionistProjectTable = () => {
         </div>
       </DataTableWrapper>
 
-      {/* CREATE APPOINTMENT MODAL */}
       <Dialog.Root open={isModalOpen} onOpenChange={setIsModalOpen}>
         <Dialog.Portal>
-          {/* BACKGROUND BLUR OVERLAY */}
           <Dialog.Overlay className="fixed inset-0 z-[1000] bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" />
-          
-          <Dialog.Content 
-            className="fixed left-[50%] top-[50%] z-[1001] w-full max-w-md translate-x-[-50%] translate-y-[-50%] 
-                       rounded-3xl border border-white bg-white p-8 shadow-2xl 
-                       animate-in fade-in zoom-in duration-200 outline-none"
-          >
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-[1001] w-full max-w-md translate-x-[-50%] translate-y-[-50%] rounded-3xl border border-white bg-white p-8 shadow-2xl animate-in fade-in zoom-in duration-200 outline-none">
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tl from-slate-800 to-slate-700 text-slate-400 shadow-lg">
                   <FontAwesomeIcon icon={faCalendarPlus} className="text-xs" />
                 </div>
-                <Dialog.Title className="text-sm font-black uppercase tracking-tight text-slate-700">
-                  New Appointment
-                </Dialog.Title>
+                <Dialog.Title className="text-sm font-black uppercase tracking-tight text-slate-700">New Appointment</Dialog.Title>
               </div>
               <Dialog.Close asChild>
-                <button className="text-slate-300 hover:text-slate-500 transition-colors">
-                  <FontAwesomeIcon icon={faTimes} />
-                </button>
+                <button className="text-slate-300 hover:text-slate-500 transition-colors"><FontAwesomeIcon icon={faTimes} /></button>
               </Dialog.Close>
             </div>
 
@@ -330,13 +351,7 @@ export const ReceptionistProjectTable = () => {
                 <label className="mb-1.5 ml-1 block text-[10px] font-black uppercase text-slate-400">Patient Email</label>
                 <div className="relative">
                   <FontAwesomeIcon icon={faEnvelope} className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-300" />
-                  <input
-                    type="email"
-                    value={patientEmail}
-                    onChange={(e) => setPatientEmail(e.target.value)}
-                    placeholder="patient@example.com"
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50/50 pl-10 pr-4 text-xs font-bold outline-none focus:bg-white transition-all"
-                  />
+                  <input type="email" value={patientEmail} onChange={(e) => setPatientEmail(e.target.value)} placeholder="patient@example.com" className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50/50 pl-10 pr-4 text-xs font-bold outline-none focus:bg-white transition-all" />
                 </div>
               </div>
 
@@ -344,11 +359,7 @@ export const ReceptionistProjectTable = () => {
                 <label className="mb-1.5 ml-1 block text-[10px] font-black uppercase text-slate-400">Assign Dentist</label>
                 <div className="relative">
                   <FontAwesomeIcon icon={faUserMd} className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 pointer-events-none" />
-                  <select
-                    value={dentistId}
-                    onChange={(e) => setDentistId(e.target.value)}
-                    className="h-12 w-full appearance-none rounded-2xl border border-slate-100 bg-slate-50/50 pl-10 pr-4 text-xs font-bold outline-none focus:bg-white transition-all"
-                  >
+                  <select value={dentistId} onChange={(e) => setDentistId(e.target.value)} className="h-12 w-full appearance-none rounded-2xl border border-slate-100 bg-slate-50/50 pl-10 pr-4 text-xs font-bold outline-none focus:bg-white transition-all">
                     <option value="">Select Dentist...</option>
                     {dentists.map((d) => <option key={d.id} value={d.id}>Dr. {d.name}</option>)}
                   </select>
@@ -358,40 +369,20 @@ export const ReceptionistProjectTable = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1.5 ml-1 block text-[10px] font-black uppercase text-slate-400">Time</label>
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50/50 px-4 text-xs font-bold outline-none focus:bg-white transition-all"
-                  />
+                  <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50/50 px-4 text-xs font-bold outline-none focus:bg-white transition-all" />
                 </div>
                 <div>
                   <label className="mb-1.5 ml-1 block text-[10px] font-black uppercase text-slate-400">Total ({billingCurrency})</label>
-                  <input
-                    value={billingTotal}
-                    onChange={(e) => setBillingTotal(e.target.value)}
-                    placeholder="0.00"
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50/50 px-4 text-xs font-bold outline-none focus:bg-white transition-all"
-                  />
+                  <input value={billingTotal} onChange={(e) => setBillingTotal(e.target.value)} placeholder="0.00" className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50/50 px-4 text-xs font-bold outline-none focus:bg-white transition-all" />
                 </div>
               </div>
 
               <div className="flex items-center gap-2 px-1">
-                <input
-                  type="checkbox"
-                  id="modal-paid"
-                  checked={billingPaid}
-                  onChange={(e) => setBillingPaid(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-200 text-cyan-500 focus:ring-cyan-500/20"
-                />
+                <input type="checkbox" id="modal-paid" checked={billingPaid} onChange={(e) => setBillingPaid(e.target.checked)} className="h-4 w-4 rounded border-slate-200 text-cyan-500 focus:ring-cyan-500/20" />
                 <label htmlFor="modal-paid" className="text-[10px] font-black uppercase text-slate-500 cursor-pointer">Mark as Paid</label>
               </div>
 
-              <button
-                disabled={submitting}
-                onClick={onBook}
-                className="mt-4 w-full h-12 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-400 shadow-soft-lg transition-all active:scale-95 disabled:opacity-50"
-              >
+              <button disabled={submitting} onClick={onBook} className="mt-4 w-full h-12 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-400 shadow-soft-lg transition-all active:scale-95 disabled:opacity-50">
                 {submitting ? <FontAwesomeIcon icon={faCircleNotch} spin className="mr-2" /> : "Confirm Appointment"}
               </button>
             </div>

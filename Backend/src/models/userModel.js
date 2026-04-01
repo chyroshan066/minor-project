@@ -27,9 +27,12 @@ async function updateUserSettings(id, hospitalId, { name, avatarUrl }) {
 // 2. Included avatar_url in the SELECT statement
 async function findUserByEmail({ email, hospitalId }) {
   const { rows } = await query(
-    `SELECT id, name, email, password_hash, role, hospital_id, avatar_url, created_at
-     FROM users
-     WHERE email = $1 AND hospital_id = $2 AND deleted_at IS NULL`,
+    `SELECT 
+        u.id, u.name, u.email, u.password_hash, u.role, u.hospital_id, u.avatar_url, u.created_at,
+        h.name as hospital_name 
+     FROM users u
+     JOIN hospitals h ON u.hospital_id = h.id
+     WHERE u.email = $1 AND u.hospital_id = $2 AND u.deleted_at IS NULL`,
     [email, hospitalId]
   );
   return rows[0] || null;
@@ -38,9 +41,12 @@ async function findUserByEmail({ email, hospitalId }) {
 // 3. Included avatar_url in the SELECT statement
 async function findUserById(id, hospitalId) {
   const { rows } = await query(
-    `SELECT id, name, email, role, hospital_id, avatar_url, created_at
-     FROM users
-     WHERE id = $1 AND hospital_id = $2 AND deleted_at IS NULL`,
+    `SELECT 
+        u.id, u.name, u.email, u.role, u.hospital_id, u.avatar_url, u.created_at,
+        h.name as hospital_name
+     FROM users u
+     JOIN hospitals h ON u.hospital_id = h.id
+     WHERE u.id = $1 AND u.hospital_id = $2 AND u.deleted_at IS NULL`,
     [id, hospitalId]
   );
   return rows[0] || null;

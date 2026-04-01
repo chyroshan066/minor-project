@@ -30,11 +30,12 @@ type SetupForm = z.infer<typeof setupSchema>;
 
 export default function SetupHospitalPage() {
   const [submitting, setSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false); // Track success status
 
   const {
     register,
     handleSubmit,
-    reset, // Added to clear form after success
+    reset,
     formState: { errors },
   } = useForm<SetupForm>({
     resolver: zodResolver(setupSchema),
@@ -76,12 +77,11 @@ export default function SetupHospitalPage() {
       }
 
       // 3. Success Feedback
-      // We removed setSession and router.replace to keep the user on this page
+      setIsSuccess(true); // Show the success message UI
       toast.success("Hospital setup successful! Check your email for your Hospital ID.", {
-        duration: 10000, // Keep toast visible longer since we aren't redirecting
+        duration: 10000,
       });
 
-      // Optional: Reset form so they can see the empty state or register another if needed
       reset();
 
     } catch (err) {
@@ -99,81 +99,106 @@ export default function SetupHospitalPage() {
             <div className="flex flex-wrap mt-0 -mx-3">
               <div className="flex flex-col w-full max-w-full px-3 mx-auto md:flex-0 shrink-0 md:w-7/12 lg:w-5/12 xl:w-4/12">
                 <div className="relative flex flex-col min-w-0 mt-24 break-words bg-transparent border-0 shadow-none rounded-2xl bg-clip-border">
+                  
                   <div className="p-6 pb-0 mb-0 bg-transparent border-b-0 rounded-t-2xl">
                     <h3 className="relative z-10 font-bold text-transparent bg-gradient-soft-blue600-cyan400 bg-clip-text">
-                      Hospital Setup
+                      Dental Setup
                     </h3>
                     <p className="mb-0 text-sm">Register your clinic and primary admin account.</p>
                   </div>
 
                   <div className="flex-auto p-6">
-                    <form role="form" onSubmit={handleSubmit(onSubmit)}>
-                      <h6 className="mb-4 text-xxs font-bold uppercase text-slate-400 opacity-60">Clinic Information</h6>
+                    {/* Only show form if not successful, otherwise show success state */}
+                    {!isSuccess ? (
+                      <form role="form" onSubmit={handleSubmit(onSubmit)}>
+                        <h6 className="mb-4 text-xxs font-bold uppercase text-slate-400 opacity-60">Clinic Information</h6>
 
-                      <div className="flex flex-wrap -mx-3">
-                        <div className="w-full max-w-full px-3 mb-4 md:w-1/2">
-                          <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Hospital Name</label>
-                          <Input placeholder="Arthonyx Dental" {...register("hospital_name")} />
-                          {errors.hospital_name && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.hospital_name.message}</p>}
+                        <div className="flex flex-wrap -mx-3">
+                          <div className="w-full max-w-full px-3 mb-4 md:w-1/2">
+                            <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Dental Name</label>
+                            <Input placeholder="Arthonyx Dental" {...register("hospital_name")} />
+                            {errors.hospital_name && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.hospital_name.message}</p>}
+                          </div>
+                          <div className="w-full max-w-full px-3 mb-4 md:w-1/2">
+                            <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">License No.</label>
+                            <Input placeholder="MED-12345" {...register("license_number")} />
+                            {errors.license_number && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.license_number.message}</p>}
+                          </div>
                         </div>
-                        <div className="w-full max-w-full px-3 mb-4 md:w-1/2">
-                          <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">License No.</label>
-                          <Input placeholder="MED-12345" {...register("license_number")} />
-                          {errors.license_number && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.license_number.message}</p>}
+
+                        <div className="mb-4">
+                          <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Clinic Address</label>
+                          <Input placeholder="123 Dental St, Butwal" {...register("address")} />
+                          {errors.address && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.address.message}</p>}
                         </div>
-                      </div>
 
-                      <div className="mb-4">
-                        <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Clinic Address</label>
-                        <Input placeholder="123 Dental St, Butwal" {...register("address")} />
-                        {errors.address && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.address.message}</p>}
-                      </div>
+                        <h6 className="mt-6 mb-4 text-xxs font-bold uppercase text-slate-400 opacity-60">Admin Credentials</h6>
 
-                      <h6 className="mt-6 mb-4 text-xxs font-bold uppercase text-slate-400 opacity-60">Admin Credentials</h6>
-
-                      <div className="mb-4">
-                        <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Full Name</label>
-                        <Input placeholder="John Doe" {...register("admin_name")} />
-                        {errors.admin_name && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.admin_name.message}</p>}
-                      </div>
-
-                      <div className="flex flex-wrap -mx-3">
-                        <div className="w-full max-w-full px-3 mb-4 md:w-1/2">
-                          <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Email</label>
-                          <Input type="email" placeholder="admin@clinic.com" {...register("admin_email")} />
-                          {errors.admin_email && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.admin_email.message}</p>}
+                        <div className="mb-4">
+                          <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Full Name</label>
+                          <Input placeholder="John Doe" {...register("admin_name")} />
+                          {errors.admin_name && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.admin_name.message}</p>}
                         </div>
-                        <div className="w-full max-w-full px-3 mb-4 md:w-1/2">
-                          <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Password</label>
-                          <Input type="password" placeholder="••••••••" {...register("admin_password")} />
-                          {errors.admin_password && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.admin_password.message}</p>}
-                        </div>
-                      </div>
 
-                      <div className="text-center">
-                        <Button
-                          variant="gradient"
-                          type="submit"
-                          disabled={submitting}
-                          className="w-full mt-6 mb-0 border-0"
-                          backgroundColor="bg-gradient-soft-blue600-cyan400"
-                          btnText={submitting ? "Creating..." : "Finish Setup"}
-                        />
+                        <div className="flex flex-wrap -mx-3">
+                          <div className="w-full max-w-full px-3 mb-4 md:w-1/2">
+                            <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Email</label>
+                            <Input type="email" placeholder="admin@clinic.com" {...register("admin_email")} />
+                            {errors.admin_email && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.admin_email.message}</p>}
+                          </div>
+                          <div className="w-full max-w-full px-3 mb-4 md:w-1/2">
+                            <label className="mb-2 ml-1 font-bold text-xs text-slate-700 capitalize">Password</label>
+                            <Input type="password" placeholder="••••••••" {...register("admin_password")} />
+                            {errors.admin_password && <p className="text-xxs text-red-500 mt-1 ml-1">{errors.admin_password.message}</p>}
+                          </div>
+                        </div>
+
+                        <div className="text-center">
+                          <Button
+                            variant="gradient"
+                            type="submit"
+                            disabled={submitting}
+                            className="w-full mt-6 mb-0 border-0"
+                            backgroundColor="bg-gradient-soft-blue600-cyan400"
+                            btnText={submitting ? "Creating..." : "Finish Setup"}
+                          />
+                        </div>
+                      </form>
+                    ) : (
+                      /* Success View */
+                      <div className="py-8 text-center animate-fade-in">
+                        <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-full bg-green-100 text-green-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                        <h4 className="font-bold text-slate-700">All Set!</h4>
+                        <p className="mb-6 text-sm text-slate-500">
+                          Dental registered successfully. We've sent the <strong>Hospital ID</strong> to your email.
+                        </p>
+                        <Link href="/login" className="w-full inline-block py-3 font-bold text-center text-white uppercase align-middle transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg shadow-soft-md text-xs tracking-tight">
+                          Go to Login
+                        </Link>
+                        <button 
+                          onClick={() => setIsSuccess(false)} 
+                          className="mt-4 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          Register another clinic
+                        </button>
                       </div>
-                    </form>
+                    )}
                   </div>
 
-                  <div className="p-6 px-1 pt-0 text-center bg-transparent border-t">
-                    <p className="mx-auto mt-4 mb-2 text-sm font-bold text-slate-700">
-                        Hospital Registered Successfully. Check your email for the Hospital ID .
-                    </p>
-                    <p className="mx-auto mb-6 text-sm">
-                      Already have an ID?&nbsp;
-                      <Link href="/login" className="font-semibold text-transparent bg-gradient-soft-blue600-cyan400 bg-clip-text">
-                        Sign in
-                      </Link>
-                    </p>
-                  </div>
+                  {!isSuccess && (
+                    <div className="p-6 px-1 pt-0 text-center bg-transparent border-t">
+                      <p className="mx-auto mb-6 text-sm">
+                        Already have an ID?&nbsp;
+                        <Link href="/login" className="font-semibold text-transparent bg-gradient-soft-blue600-cyan400 bg-clip-text">
+                          Sign in
+                        </Link>
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

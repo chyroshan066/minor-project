@@ -99,7 +99,7 @@ function PatientModal({
                 <label className="text-xxs font-bold uppercase text-slate-400 ml-1 tracking-widest">Full Name *</label>
                 <input
                   className="h-12 w-full rounded-2xl border border-slate-200 px-4 text-sm text-slate-600 outline-none focus:border-cyan-400 focus:ring-4 focus:ring-cyan-50 transition-all placeholder:text-slate-300 shadow-soft-xxs"
-                  placeholder="e.g. Rajesh Sharma"
+                  placeholder="e.g. Prateek Koirala"
                   value={draft.name}
                   onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                   required
@@ -136,7 +136,7 @@ function PatientModal({
                   </span>
                   <input
                     className="h-12 w-full rounded-2xl border border-slate-200 pl-10 pr-4 text-sm text-slate-600 outline-none focus:border-cyan-400 focus:ring-4 focus:ring-cyan-50 transition-all placeholder:text-slate-300 shadow-soft-xxs"
-                    placeholder="Butwal, Nepal"
+                    placeholder="Dharan, Nepal"
                     value={draft.address ?? ""}
                     onChange={(e) => setDraft({ ...draft, address: e.target.value })}
                   />

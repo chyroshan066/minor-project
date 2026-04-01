@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { faHistory, faSearch, faMicrochip } from "@fortawesome/free-solid-svg-icons";
+import { faHistory, faSearch, faMicrochip, faSyncAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import {
@@ -12,8 +12,6 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/EmptyState";
-
-// Ensure these paths match your project structure
 import { listAuditLogs, type AuditLog } from "@/lib/api/auditLogs";
 import { getApiErrorMessage } from "@/lib/api/errors";
 
@@ -28,14 +26,15 @@ export const AdminProjectTable = () => {
   const [items, setItems] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function fetchData(nextPage = 1) {
+  // Wrap fetchData in useCallback so it's stable across renders
+  const fetchData = useCallback(async (nextPage = 1, currentAction = "", currentResource = "") => {
     setLoading(true);
     try {
       const res = await listAuditLogs({
         page: nextPage,
         limit,
-        action: action.trim() || undefined,
-        resource: resource.trim() || undefined,
+        action: currentAction.trim() || undefined,
+        resource: currentResource.trim() || undefined,
       });
       setItems(res.items);
       setPage(res.page);
@@ -44,11 +43,18 @@ export const AdminProjectTable = () => {
     } finally {
       setLoading(false);
     }
-  }
+  }, [limit]);
 
+  // LIVE FILTER EFFECT with DEBOUNCE
   useEffect(() => {
-    fetchData(1);
-  }, []);
+    // Wait 500ms after the last keystroke before fetching
+    const timer = setTimeout(() => {
+      fetchData(1, action, resource);
+    }, 500);
+
+    // Cleanup: cancels the timer if the user types again before 500ms is up
+    return () => clearTimeout(timer);
+  }, [action, resource, fetchData]);
 
   const canGoNext = useMemo(() => items.length === limit && !loading, [items.length, limit, loading]);
 
@@ -58,27 +64,35 @@ export const AdminProjectTable = () => {
       <div className="flex flex-wrap items-end gap-3 px-6 py-4">
         <div className="flex flex-col gap-1">
           <label className="ml-1 text-xxs font-bold uppercase text-slate-400">Action</label>
-          <input
-            value={action}
-            onChange={(e) => setAction(e.target.value)}
-            placeholder="e.g. USER_LOGIN"
-            className="h-10 w-[200px] rounded-xl border border-slate-200 bg-white px-3 text-xs shadow-soft-xxs outline-none focus:border-cyan-400 transition-all"
-          />
+          <div className="relative">
+            <input
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+              placeholder="e.g. USER_LOGIN"
+              className="h-10 w-[200px] rounded-xl border border-slate-200 bg-white px-3 text-xs shadow-soft-xxs outline-none focus:border-cyan-400 transition-all"
+            />
+          </div>
         </div>
+
         <div className="flex flex-col gap-1">
           <label className="ml-1 text-xxs font-bold uppercase text-slate-400">Resource</label>
-          <input
-            value={resource}
-            onChange={(e) => setResource(e.target.value)}
-            placeholder="patients..."
-            className="h-10 w-[200px] rounded-xl border border-slate-200 bg-white px-3 text-xs shadow-soft-xxs outline-none focus:border-cyan-400 transition-all"
-          />
+          <div className="relative">
+            <input
+              value={resource}
+              onChange={(e) => setResource(e.target.value)}
+              placeholder="patients..."
+              className="h-10 w-[200px] rounded-xl border border-slate-200 bg-white px-3 text-xs shadow-soft-xxs outline-none focus:border-cyan-400 transition-all"
+            />
+          </div>
         </div>
+
+        {/* Manual Refresh Button (Optional since it's now live) */}
         <button
-          onClick={() => fetchData(1)}
-          className="h-10 rounded-xl bg-gradient-to-tl from-blue-600 to-cyan-400 px-6 text-xs font-bold uppercase text-slate-400 shadow-soft-md transition-all hover:scale-105 active:opacity-85"
+          onClick={() => fetchData(1, action, resource)}
+          className="h-10 rounded-xl bg-white border border-slate-200 px-4 text-xs font-bold uppercase text-slate-500 shadow-soft-xxs transition-all hover:bg-slate-50 active:opacity-85"
+          title="Force Refresh"
         >
-          <FontAwesomeIcon icon={faSearch} className="mr-2" /> Filter
+          <FontAwesomeIcon icon={faSyncAlt} spin={loading} />
         </button>
       </div>
 
@@ -92,7 +106,7 @@ export const AdminProjectTable = () => {
           </tr>
         </TableHead>
         <tbody>
-          {loading ? (
+          {loading && items.length === 0 ? (
             <tr><td colSpan={4} className="py-20 text-center text-disabled text-xs uppercase font-bold animate-pulse">Syncing logs...</td></tr>
           ) : items.length === 0 ? (
             <tr>
@@ -124,7 +138,7 @@ export const AdminProjectTable = () => {
                 </TableCell>
 
                 <TableCell isLastRow={index === items.length - 1}>
-                  <span className="rounded-2xl bg-gradient-to-tl from-slate-600 to-slate-300 px-2.5 py-1.5 text-center align-baseline text-xxs font-bold uppercase leading-none text-slate-400">
+                  <span className="rounded-2xl bg-gradient-to-tl from-slate-600 to-slate-300 px-2.5 py-1.5 text-center align-baseline text-xxs font-bold uppercase leading-none text-white">
                     {log.resource}
                   </span>
                 </TableCell>
@@ -163,14 +177,14 @@ export const AdminProjectTable = () => {
         <div className="flex gap-2">
           <button
             disabled={page <= 1 || loading}
-            onClick={() => fetchData(page - 1)}
+            onClick={() => fetchData(page - 1, action, resource)}
             className="px-4 py-1.5 text-xxs font-bold uppercase border border-border rounded-lg bg-white shadow-soft-xxs hover:bg-slate-50 disabled:opacity-40 transition-all"
           >
             Prev
           </button>
           <button
-            disabled={!canGoNext}
-            onClick={() => fetchData(page + 1)}
+            disabled={!canGoNext || loading}
+            onClick={() => fetchData(page + 1, action, resource)}
             className="px-4 py-1.5 text-xxs font-bold uppercase border border-border rounded-lg bg-white shadow-soft-xxs hover:bg-slate-50 disabled:opacity-40 transition-all"
           >
             Next

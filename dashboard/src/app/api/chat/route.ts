@@ -6,7 +6,6 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { message, history, token } = body;
 
-    // 1. Validate that we have a token
     if (!token) {
       return NextResponse.json(
         { reply: "Session expired. Please log in to your Arthonyx account." },
@@ -14,29 +13,49 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. Forward request to Node.js (Port 4000)
+    // ADDED: Decode the JWT payload to extract hospital_id.
+    // JWT structure is: header.payload.signature — all base64url encoded.
+    // We only need the payload (index 1) to get hospital_id.
+    const jwtPayload = JSON.parse(
+      Buffer.from(token.split('.')[1], 'base64url').toString('utf-8')
+    );
+    const hospital_id = jwtPayload.hospital_id;
+
+    // ADDED: Guard — if hospital_id is missing in the token, reject early.
+    if (!hospital_id) {
+      return NextResponse.json(
+        { reply: "Session expired. Please log in to your Arthonyx account." },
+        { status: 401 }
+      );
+    }
+
+    // CHANGED: Now calling the Python Lambda directly with all required fields.
+    // Python FastAPI expects: { message, hospital_id, conversation_history }
     const response = await axios.post(
-      'https://api-minor-project.vercel.app/api/chat-ai', 
+      'https://api-minor-project.vercel.app/api/chat',
       {
-        message: message,
-        // Match the 'conversation_history' key your Python service expects
-        conversation_history: history || [] 
-      }, 
+        message,
+        hospital_id,                    // ADDED: extracted from JWT above
+        conversation_history: history || []
+      },
       {
-        headers: { 
-          // Use the Bearer token passed from the frontend zustand store
-          Authorization: `Bearer ${token}`,
+        headers: {
           "Content-Type": "application/json"
+          // REMOVED: Authorization header — Python Lambda has no auth middleware,
+          // hospital_id is passed in the body instead.
         },
       }
     );
 
     return NextResponse.json(response.data);
+
   } catch (error: any) {
-    // Log the detailed error to your Next.js terminal for debugging
     console.error("Dashboard Bridge Error:", error.response?.data || error.message);
     
-    const errorMessage = error.response?.data?.message || "DentaBot is having trouble connecting to the records.";
+    // CHANGED: more specific error message for easier debugging
+    const errorMessage = error.response?.data?.detail 
+      || error.response?.data?.message 
+      || "DentaBot is having trouble connecting to the records.";
     
     return NextResponse.json(
       { reply: errorMessage },

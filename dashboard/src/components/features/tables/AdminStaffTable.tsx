@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { faUsersSlash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import emailjs from "@emailjs/browser"; // Added EmailJS import
 
-// Soft UI Components
 import {
   DataTableWrapper,
   Table,
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/EmptyState";
 
-// Logic & API
 import { listUsers, type User } from "@/lib/api/users";
 import { registerStaff } from "@/lib/api/auth";
 import { getApiErrorMessage } from "@/lib/api/errors";
@@ -23,6 +22,7 @@ import type { Role } from "@/store/authStore";
 
 // The Dialog Component
 import { UserCreateDialog } from "@/components/features/tables/UserCreateDialog";
+import { useAuthStore } from "@/store/authStore"; 
 
 export const AdminStaffTable = () => {
   // --- Logic State ---
@@ -60,10 +60,41 @@ export const AdminStaffTable = () => {
 
   const canGoNext = useMemo(() => items.length === limit && !loading, [items, limit, loading]);
 
+  const { user: adminUser, hospitalId } = useAuthStore();
+
   async function createUser(draft: any) {
     setCreating(true);
     try {
-      await registerStaff(draft);
+      
+      // 1. Register user in database
+      const newUser = await registerStaff(draft);
+      
+      // 2. Send Invitation Email via EmailJS
+      try {
+        const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_kapkbvp"; // Replace with your actual service ID
+        const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_FOR_STAFF || "template_hfai8g8"; // Recommended: specific template for staff
+        const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "HZ6bVjwq92m_MSQfT";
+
+        emailjs.init(publicKey);
+
+        const templateParams = {
+        to_name: draft.name,
+        to_email: draft.email,
+        from_email: adminUser?.email, 
+        role: draft.role.charAt(0).toUpperCase() + draft.role.slice(1),
+        hospital_name: "Arthonyx Dental Care", 
+        hospital_id: hospitalId, 
+        password: draft.password,
+        login_url: `${window.location.origin}/login`,
+      };
+
+        await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      } catch (emailErr) {
+        console.error("EmailJS Invitation Error:", emailErr);
+        // We use warning because the user was created successfully in DB
+        toast.warning("Staff created, but welcome email could not be sent.");
+      }
+
       toast.success("Staff member invited successfully");
       setCreateOpen(false);
       fetchUsers(1);
@@ -76,7 +107,6 @@ export const AdminStaffTable = () => {
 
   return (
     <DataTableWrapper title="Staff Management">
-      {/* Search and Filter Row */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4">
         <div className="flex flex-1 items-center gap-3 w-full">
           <input
@@ -134,7 +164,6 @@ export const AdminStaffTable = () => {
               <tr key={user.id}>
                 <TableCell isLastRow={index === items.length - 1} className="px-6">
                   <TableAvatarCell
-                    // Updated: Using the Cloudinary URL from backend with a fallback
                     img={user.avatar_url || ""} 
                     name={user.name}
                     subTitle={user.email}

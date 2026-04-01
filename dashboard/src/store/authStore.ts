@@ -9,6 +9,7 @@ export type AuthUser = {
   email: string;
   role: Role;
   hospital_id: string;
+  hospital_name: string; 
   created_at: string;
   avatar_url?: string;
 };
@@ -18,8 +19,8 @@ type AuthSession = {
   refreshToken: string | null;
   user: AuthUser | null;
   hospitalId: string | null;
+  hospitalName: string | null;
   role: Role | null;
-  avatarurl?: string | null;
 };
 
 type AuthActions = {
@@ -29,6 +30,8 @@ type AuthActions = {
     user: AuthUser;
   }) => void;
   setTokens: (tokens: { accessToken: string; refreshToken: string }) => void;
+  // --- ADDED THIS ACTION ---
+  updateUser: (userData: Partial<AuthUser>) => void; 
   clearSession: () => void;
 };
 
@@ -39,6 +42,7 @@ export const useAuthStore = create<AuthSession & AuthActions>()(
       refreshToken: null,
       user: null,
       hospitalId: null,
+      hospitalName: null,
       role: null,
 
       setSession: ({ accessToken, refreshToken, user }) =>
@@ -47,6 +51,7 @@ export const useAuthStore = create<AuthSession & AuthActions>()(
           refreshToken,
           user,
           hospitalId: user.hospital_id,
+          hospitalName: user.hospital_name ?? null,
           role: user.role,
         }),
 
@@ -56,12 +61,19 @@ export const useAuthStore = create<AuthSession & AuthActions>()(
           refreshToken,
         }),
 
+      // --- NEW: LOGIC TO UPDATE USER IMMEDIATELY ---
+      updateUser: (userData) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, ...userData } : null,
+        })),
+
       clearSession: () =>
         set({
           accessToken: null,
           refreshToken: null,
           user: null,
           hospitalId: null,
+          hospitalName: null,
           role: null,
         }),
     }),
@@ -81,9 +93,9 @@ export const useAuthStore = create<AuthSession & AuthActions>()(
         refreshToken: state.refreshToken,
         user: state.user,
         hospitalId: state.hospitalId,
+        hospitalName: state.hospitalName,
         role: state.role,
       }),
     }
   )
 );
-

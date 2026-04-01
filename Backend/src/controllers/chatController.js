@@ -1,5 +1,7 @@
 const axios = require('axios');
 
+const PYTHON_SERVICE_URL = process.env.PYTHON_SERVICE_URL;
+
 exports.handleChat = async (req, res) => {
   try {
     const { message, history } = req.body;
@@ -12,7 +14,7 @@ exports.handleChat = async (req, res) => {
     const hospital_id = req.user.hospital_id;
 
     // Forwarding the request to your Python service on Port 5001
-    const pythonResponse = await axios.post('http://localhost:5001/chat', {
+    const pythonResponse = await axios.post(`${PYTHON_SERVICE_URL}/api/chat`, {
       message,
       hospital_id,
       conversation_history: history || []
