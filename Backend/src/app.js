@@ -15,6 +15,7 @@ const { medicalRecordRoutes } = require("./routes/medicalRecordRoutes");
 const { patientRoutes } = require("./routes/patientRoutes");
 const { uploadRoutes } = require("./routes/uploadRoutes");
 const { userRoutes } = require("./routes/userRoutes");
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const { errorHandler } = require("./middleware/errorHandler");
 
@@ -85,6 +86,7 @@ app.use("/api/medical-records", medicalRecordRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/users", userRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Route not found" });

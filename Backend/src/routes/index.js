@@ -5,13 +5,12 @@ const { chatRoutes } = require('./chatRoutes');
 const { userRoutes } = require('./userRoutes');
 const { patientRoutes } = require('./patientRoutes');
 const { appointmentRoutes } = require('./appointmentRoutes');
-const { medicalRecordRoutes } = require('./medicalRecordRoutes');
+// const { medicalRecordRoutes } = require('./medicalRecordRoutes');
 const { auditRoutes } = require('./auditRoutes');
 const { uploadRoutes } = require('./uploadRoutes');
 const { adminRoutes } = require('./adminRoutes');
 const { dentistRoutes } = require('./dentistRoutes');
-const {chatRoutes} = require('./chatRoutes');
-
+const { getDashboardStats } = require('../controllers/dashboardController');
 
 const router = express.Router();
 
@@ -21,12 +20,13 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/patients', patientRoutes);
 router.use('/appointments', appointmentRoutes);
-router.use('/', medicalRecordRoutes); // contains /medical-records and /patients/:patientId/medical-records
+router.use('/', medicalRecordRoutes); 
 router.use('/audit-logs', auditRoutes);
 router.use('/uploads', uploadRoutes);
 router.use('/admin', adminRoutes);
 router.use('/dentists', dentistRoutes);
 router.use('/chat', chatRoutes);
+router.get('/dashboard/stats', getDashboardStats);
 
 module.exports = { apiRoutes: router };
 

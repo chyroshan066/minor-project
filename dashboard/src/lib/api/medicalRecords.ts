@@ -16,7 +16,7 @@ export async function listMedicalRecordsByPatient(params: {
   limit?: number;
 }): Promise<{ page: number; limit: number; items: MedicalRecord[] }> {
   const res = await apiClient.get(
-    `/patients/${params.patientId}/medical-records`,
+    `/patients/${params.patientId}/medical-records/medical-records`,
     { params: { page: params.page, limit: params.limit } }
   );
   return res.data;
@@ -25,7 +25,7 @@ export async function listMedicalRecordsByPatient(params: {
 export async function getMedicalRecord(id: string): Promise<{
   medicalRecord: MedicalRecord;
 }> {
-  const res = await apiClient.get(`/medical-records/${id}`);
+  const res = await apiClient.get(`/medical-records/medical-records/${id}`);
   return res.data;
 }
 
@@ -36,7 +36,7 @@ export async function createMedicalRecord(payload: {
   notes?: string | null;
   prescription?: string | null;
 }): Promise<{ medicalRecord: MedicalRecord }> {
-  const res = await apiClient.post(`/medical-records`, payload);
+  const res = await apiClient.post(`/medical-records/medical-records`, payload);
   return res.data;
 }
 
@@ -49,12 +49,12 @@ export async function updateMedicalRecord(
     prescription: string | null;
   }>
 ): Promise<{ medicalRecord: MedicalRecord }> {
-  const res = await apiClient.put(`/medical-records/${id}`, payload);
+  const res = await apiClient.put(`/medical-records/medical-records/${id}`, payload);
   return res.data;
 }
 
 export async function deleteMedicalRecord(id: string) {
-  await apiClient.delete(`/medical-records/${id}`);
+  await apiClient.delete(`/medical-records/medical-records/${id}`);
   return { ok: true };
 }
 
@@ -64,7 +64,7 @@ export async function listMedicalRecordsByDentist(params: {
   limit?: number;
 }): Promise<{ page: number; limit: number; items: MedicalRecord[] }> {
   // This matches the new listByDentist controller function we created
-  const res = await apiClient.get(`/medical-records`, { 
+  const res = await apiClient.get(`/medical-records/medical-records`, { 
     params: { page: params.page, limit: params.limit } 
   });
   return res.data;
