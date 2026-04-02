@@ -3,6 +3,7 @@ const { z } = require('zod');
 const { authRequired, requireAnyRole } = require('../middleware/auth');
 const { validate } = require('../middleware/validate');
 const patientController = require('../controllers/patientController');
+const { patientStatsRoute } = require("./patientStatsRoutes");  // new
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ router.use(authRequired);
 
 router.get('/', requireAnyRole(['admin', 'dentist', 'receptionist']), validate({ query: listQuery }), patientController.list);
 router.post('/', requireAnyRole(['admin', 'receptionist']), validate({ body: createBody }), patientController.create);
+router.use("/", patientStatsRoute); // new
 router.get('/:id', requireAnyRole(['admin', 'dentist', 'receptionist']), validate({ params: idParams }), patientController.get);
 router.put('/:id', requireAnyRole(['admin', 'receptionist']), validate({ params: idParams, body: updateBody }), patientController.update);
 router.delete('/:id', requireAnyRole(['admin', 'receptionist']), validate({ params: idParams }), patientController.remove);
