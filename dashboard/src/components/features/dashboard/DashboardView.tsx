@@ -8,8 +8,8 @@ import { Footer } from "@/components/layout/Footer";
 export const DashboardView = memo(() => (
   <div className="w-full px-6 py-6 mx-auto">
     <StatsSection />
-    <InformationSection />
     <ChartsSection />
+    <InformationSection />
     <ManagementSection />
     <Footer />
   </div>
