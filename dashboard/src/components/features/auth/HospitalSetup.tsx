@@ -176,7 +176,7 @@ export default function SetupHospitalPage() {
                         <p className="mb-6 text-sm text-slate-500">
                           Dental registered successfully. We've sent the <strong>Hospital ID</strong> to your email.
                         </p>
-                        <Link href="/login" className="w-full inline-block py-3 font-bold text-center text-white uppercase align-middle transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg shadow-soft-md text-xs tracking-tight">
+                        <Link href="/login" className="w-full inline-block py-3 font-bold text-center text-slate-400 uppercase align-middle transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg shadow-soft-md text-xs tracking-tight">
                           Go to Login
                         </Link>
                         <button 
